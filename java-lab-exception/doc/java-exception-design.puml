@@ -1,0 +1,13 @@
+@startuml
+
+title Java Exception Design
+
+class Throwable
+
+class Error extends Throwable
+class Exception extends Throwable
+
+class IOException extends Exception
+class RuntimeException extends Exception
+
+@enduml
