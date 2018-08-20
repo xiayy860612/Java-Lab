@@ -36,6 +36,21 @@ public class JavaExceptionLab {
             throw ex;
         }
 
+        TestResource testResource = new TestResource();
+        try {
+            System.out.printf("user resource");
+        } catch (Exception e) {
+
+        } finally {
+            try {
+                testResource.close();
+            } catch (Exception e) {
+//                throw e;
+            } finally {
+
+            }
+        }
+
         try(TestResource resource = new TestResource()) {
             System.out.println("use resource");
             throw new AbTestException();
