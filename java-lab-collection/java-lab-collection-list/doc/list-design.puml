@@ -1,0 +1,22 @@
+@startuml
+
+
+interface Collection<T>
+interface List<T> extends Collection
+
+interface Iterator<E>
+interface ListIterator<E> extends Iterator {
+    void add(E element);
+
+    E previous();
+    boolean hasPrevious();
+
+    void set(E e);
+}
+
+class AbstractCollection<T> implements Collection
+class AbstractList<T> extends AbstractCollection implements List
+class AbstractSequentialList<T> extends AbstractList
+class LinkedList<T> extends AbstractSequentialList implements List
+
+@enduml
