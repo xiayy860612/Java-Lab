@@ -28,6 +28,7 @@
     <modules>
         <module>java-lab-exception</module>
         <module>java-lab-init-block</module>
+        <module>java-lab-basic</module>
     </modules>
 
     <repositories>
