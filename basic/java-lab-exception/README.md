@@ -24,7 +24,7 @@
 
 ## Java的异常设计
 
-[Java Exception Design](./doc/java-exception-design.puml)
+[Java Exception Design](doc/java-exception-design.puml)
 
 Java中的异常对象都继承自**Throwable**类.
 

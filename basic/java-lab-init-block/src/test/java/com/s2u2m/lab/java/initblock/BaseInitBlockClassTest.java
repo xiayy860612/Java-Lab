@@ -19,7 +19,7 @@ package com.s2u2m.lab.java.initblock;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * BaseInitBlockClassTest create on 19-1-6.
