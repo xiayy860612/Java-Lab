@@ -1,6 +1,11 @@
-package com.s2u2m.lab.java.adv.annotion.ast.apt;
+package com.s2u2m.lab.java.adv.annotion.ast.treemaker;
 
 import com.google.auto.service.AutoService;
+import com.sun.tools.javac.api.JavacTrees;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Names;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -10,7 +15,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,15 +23,23 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @AutoService(Processor.class)
-public class ClassBuilderAnnotationProcessor extends AbstractProcessor {
+public class ClassInnerBuilderAnnotationProcessor extends AbstractProcessor {
+
     // message is used for logging some info
     Messager messager;
     // filer is used to write class file
     Filer filer;
     // elementUtils is used to get element info
     Elements elementUtils;
-    // typeUtils is sued to get type info
+    // typeUtils is used to get type info
     Types typeUtils;
+
+    // AST
+    JavacTrees trees;
+    // treeMaker is used to modify AST
+    TreeMaker treeMaker;
+    // names is used to create identity of object
+    Names names;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -36,11 +48,16 @@ public class ClassBuilderAnnotationProcessor extends AbstractProcessor {
         filer = processingEnv.getFiler();
         elementUtils = processingEnv.getElementUtils();
         typeUtils = processingEnv.getTypeUtils();
+
+        trees = JavacTrees.instance(processingEnv);
+        Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
+        treeMaker = TreeMaker.instance(context);
+        this.names = Names.instance(context);
     }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Stream.of(ClassBuilderInNewFile.class.getCanonicalName()).collect(Collectors.toSet());
+        return Stream.of(ClassInnerBuilder.class.getCanonicalName()).collect(Collectors.toSet());
     }
 
     @Override
@@ -50,26 +67,18 @@ public class ClassBuilderAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        List<ClassBuilderAnnotatedClass> annotatedClassList = new LinkedList<>();
-        for (Element element: roundEnv.getElementsAnnotatedWith(ClassBuilderInNewFile.class)) {
+        List<ClassInnerBuilderAnnotatedClass> annotatedClassList = new LinkedList<>();
+        for (Element element: roundEnv.getElementsAnnotatedWith(ClassInnerBuilder.class)) {
             // check if a class is annotated
             if (element.getKind() != ElementKind.CLASS) {
                 error("Element[{0}] failed: {1} cannot used for {2}",
-                        element.getSimpleName(), ClassBuilderInNewFile.class.getSimpleName(), element.getKind().toString());
+                        element.getSimpleName(), ClassInnerBuilder.class.getSimpleName(), element.getKind().toString());
                 return true;
             }
-            annotatedClassList.add(new ClassBuilderAnnotatedClass((TypeElement) element));
+            annotatedClassList.add(new ClassInnerBuilderAnnotatedClass((TypeElement) element));
         }
 
-        try {
-            for (ClassBuilderAnnotatedClass annotatedClass : annotatedClassList) {
-                annotatedClass.generateCode(typeUtils, elementUtils, filer);
-            }
-        } catch (IOException ex) {
-            error("Generate {0} file failed: {1}",
-                    ClassBuilderInNewFile.class.getSimpleName(), ex);
-            return true;
-        }
+        annotatedClassList.forEach(annotatedClass -> annotatedClass.generateCode(trees, treeMaker, names));
         return true;
     }
 
